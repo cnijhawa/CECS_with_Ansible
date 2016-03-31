@@ -1,0 +1,16 @@
+---
+#Provision some instances:
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Call UCSD REST API 
+      uri:
+        url: "http://{{UCSD_IP}}/app/api/rest?formatType=json&opName={{OPNAME}}&opData={{OPDATA}}"
+        HEADER_X-Cloupia-Request-Key: "{{accessKey}}"
+        method: GET
+        return_content: yes
+      register: result
+
+
+

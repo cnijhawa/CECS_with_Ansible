@@ -1,0 +1,40 @@
+---
+####
+#Description: This playbook creates VM in public cloud using ICF
+#
+#Input variables
+#
+# ICF_IP -- ICF IP
+# ICF_username -- ICF username
+# ICF_password -- ICF password
+# catalog_name -- catalog name
+# vdc_name -- vdc_name
+# network_name -- nework_name
+#
+####
+#Provision some instances:
+- hosts: localhost
+  connection: local
+
+  vars:
+    file_path: /var/lib/awx/projects/cecs-ansible/all_variables
+
+  tasks:
+    shell: touch {{file_path}}; chmod 777 {{file_path}}
+
+# Get catalog OID, VDC OID and network OID for the VM to be created.
+# These OIDs are stored in an intermediate file called all_variables
+
+- include: getIcfOid.yml url_object=/catalog-items  oid_name={{catalog_name}} oid_name_internal=catalog_oid ICF_IP={{ICF_IP}} ICF_username={{ICF_username}} ICF_password={{ICF_password}}
+
+- include: getIcfOid.yml url_object=/vdcs oid_name={{vdc_name}} oid_name_internal=vdc_oid ICF_IP={{ICF_IP}} ICF_username={{ICF_username}}  ICF_password={{ICF_password}}
+
+- include: getIcfOid.yml url_object=/networks oid_name={{network_name}} oid_name_internal=network_oid ICF_IP={{ICF_IP}} ICF_username={{ICF_username}} ICF_password={{ICF_password}}
+
+# Create VM
+- include: createICFInstance.yml ICF_IP={{ICF_IP}} ICF_username={{ICF_username}} ICF_password={{ICF_password}}
+
+# Clean intermediate variables
+- include: cleanVariables.yml
+
+

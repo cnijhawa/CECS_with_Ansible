@@ -1,0 +1,13 @@
+---
+#Provision some instances:
+- hosts: localhost
+  connection: local
+
+  vars:
+    file_path: /var/lib/awx/projects/cecs-ansible/all_variables
+ 
+#this file should be writtable by ansible user awx
+  tasks:
+    - name: cleaning variables
+      shell: rm -rf {{file_path}}; touch {{file_path}}; chmod 777 {{file_path}} 
+#      shell: rm -rf /var/lib/awx/projects/cecs-ansible/all_variables; touch /var/lib/awx/projects/cecs-ansible/all_variables; chmod 777 /var/lib/awx/projects/cecs-ansible/all_variables

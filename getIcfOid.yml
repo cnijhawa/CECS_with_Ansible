@@ -1,0 +1,57 @@
+---
+####
+#Description: This playbook returns OID number for a given object i.e.  catalog/VDC/network
+#OID is saved in all_variables file as "oid_name_internal":"OID"
+#
+#Input variables
+#
+# ICF_IP --> ICF IP
+# ICF_username -- ICF username
+# ICF_password -- ICF password
+# url_object -- /catalog-items or /vdcs or /networks
+# oid_name -- name of catalog/VDC/network 
+# oid_name_internal -- how its stored in all_variables file 
+# 
+####
+
+#Provision some instances:
+- hosts: localhost
+  connection: local
+
+  vars:
+    url_token: /token
+    url_groups: /user-groups
+    url_logout: /logout
+    create_body: " {\"username\":\"{{ICF_username}}\", \"password\":\"{{ICF_password}}\"}"
+    file_path: /var/lib/awx/projects/cecs-ansible/all_variables
+
+  tasks:
+    - name: Launch ICF instances -123
+      uri:
+        url: "http://{{ICF_IP }}/icfb/v1{{url_token}}"
+        HEADER_Content-Type: "application/json"
+        body: "{{create_body}}"
+        method: POST
+      register: result
+
+    - name: Get ICF OID
+      uri:
+        url: "http://{{ICF_IP}}/icfb/v1{{url_object}}"
+        HEADER_Content-Type: "application/json"
+        HEADER_x_icfb_token: "{{result.x_icfb_token}}"
+        HEADER_Cookie: "{{result.set_cookie}}"
+        method: GET
+      register: catalogs
+
+    - shell: echo "{{oid_name_internal}}:"" {{item.properties.oid}}" >> {{file_path}}
+      when: item.properties.name==oid_name
+      with_items: catalogs.json.value
+
+    - name: Logout
+      uri:
+        url: "http://{{ICF_IP}}/icfb/v1{{url_logout}}"
+        HEADER_Content-Type: "application/json"
+        HEADER_x_icfb_token: "{{result.x_icfb_token}}"
+        HEADER_Cookie: "{{result.set_cookie}}"
+        method: POST
+
